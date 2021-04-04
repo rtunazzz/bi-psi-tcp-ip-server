@@ -7,12 +7,15 @@ import (
 	"strings"
 )
 
-type RobotReader struct {
-	Conn   net.Conn
-	Buffer string
+type Robot struct {
+	Conn      net.Conn
+	Buffer    string
+	Username  string
+	coors     *Coordinate
+	prevCoors *Coordinate
 }
 
-func (r *RobotReader) getMessage(maxLength int) (msg string, err error) {
+func (r *Robot) getMessage(maxLength int) (msg string, err error) {
 	for {
 		parts := strings.SplitN(r.Buffer, "\a\b", 2)
 
@@ -38,7 +41,7 @@ func (r *RobotReader) getMessage(maxLength int) (msg string, err error) {
 	}
 }
 
-func (r *RobotReader) readSocketBuffer() (err error) {
+func (r *Robot) readSocketBuffer() (err error) {
 	// Set a deadline for reading. Read operation will fail if no data is received after deadline.
 	// r.Conn.SetReadDeadline(time.Now().Add(TIMEOUT))
 

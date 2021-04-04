@@ -41,7 +41,7 @@ var AUTH_KEYS = [...]map[string]int{
 	},
 }
 
-func (r *RobotReader) authenticate() (err error) {
+func (r *Robot) authenticate() (err error) {
 	// Get robot's username
 	username, err := r.getMessage(MAX_USERNAME_LEN)
 	if err != nil {
@@ -54,6 +54,9 @@ func (r *RobotReader) authenticate() (err error) {
 		log.Printf("Authentication failed - wrong username '%s'\n", username)
 		return err
 	}
+
+	// Set username so we can use it later in other functions as well
+	r.Username = username
 
 	log.Printf("[%s] Authenticating...\n", username)
 	_, err = r.Conn.Write([]byte(SERVER_KEY_REQUEST))

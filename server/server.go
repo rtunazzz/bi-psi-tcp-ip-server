@@ -79,16 +79,15 @@ func handleConnection(conn net.Conn) {
 		}
 	}()
 
-	r := RobotReader{Conn: conn}
+	r := Robot{Conn: conn}
 	err := r.authenticate()
 	if err != nil {
-		log.Printf("Error while authenticting: %s\n", err)
+		log.Printf("Error while authenticating: %s\n", err)
 		return
 	}
-	// msg, err := r.getMessage(100)
-	// if err != nil {
-	// 	log.Printf("Error while getting a message: %s\n", err)
-	// 	return
-	// }
-	// log.Printf("Received a message: %s\n", msg)
+	err = r.setInitCoordinates()
+	if err != nil {
+		log.Printf("Error while setting initial coordinates: %s\n", err)
+		return
+	}
 }
