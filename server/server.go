@@ -11,8 +11,25 @@ import (
 
 const (
 	BUFFER_SIZE        = 1024
-	TIMEOUT            = 1 * time.Second
-	TIMEOUT_RECHARGING = 5 * time.Second
+	TIMEOUT            = 1 * time.Second // Server i klient očekávají od protistrany odpověď po dobu tohoto intervalu.
+	TIMEOUT_RECHARGING = 5 * time.Second // Časový interval, během kterého musí robot dokončit dobíjení.
+
+	// Constatnt Server messages
+	SERVER_MOVE                   = "102 MOVE\\a\\b"             //	Příkaz pro pohyb o jedno pole vpřed
+	SERVER_TURN_LEFT              = "103 TURN LEFT\\a\\b"        //	Příkaz pro otočení doleva
+	SERVER_TURN_RIGHT             = "104 TURN RIGHT\\a\\b"       //	Příkaz pro otočení doprava
+	SERVER_PICK_UP                = "105 GET MESSAGE\\a\\b"      //	Příkaz pro vyzvednutí zprávy
+	SERVER_LOGOUT                 = "106 LOGOUT\\a\\b"           //	Příkaz pro ukončení spojení po úspěšném vyzvednutí zprávy
+	SERVER_KEY_REQUEST            = "107 KEY REQUEST\\a\\b"      //	Žádost serveru o Key ID pro komunikaci
+	SERVER_OK                     = "200 OK\\a\\b"               //	Kladné potvrzení
+	SERVER_LOGIN_FAILED           = "300 LOGIN FAILED\\a\\b"     //	Nezdařená autentizace
+	SERVER_SYNTAX_ERROR           = "301 SYNTAX ERROR\\a\\b"     //	Chybná syntaxe zprávy
+	SERVER_LOGIC_ERROR            = "302 LOGIC ERROR\\a\\b"      //	Zpráva odeslaná ve špatné situaci
+	SERVER_KEY_OUT_OF_RANGE_ERROR = "303 KEY OUT OF RANGE\\a\\b" // Key ID není v očekávaném rozsahu
+
+	// Constatnt Client Messages
+	CLIENT_RECHARGING = "RECHARGING\\a\\b" // Robot se začal dobíjet a přestal reagovat na zprávy.
+	CLIENT_FULL_POWER = "FULL POWER\\a\\b" // Robot doplnil energii a opět příjímá příkazy.
 )
 
 // Starts a TCP listener
@@ -52,7 +69,7 @@ func StartListener() {
 }
 
 func handleConnection(conn net.Conn) {
-	log.Printf("[%s] Handling a new connection...", conn.RemoteAddr().String())
+	log.Printf("[%s] Handling a new connection...\n", conn.RemoteAddr().String())
 
 	defer func() {
 		log.Println("Closing connection...")
@@ -62,50 +79,11 @@ func handleConnection(conn net.Conn) {
 		}
 	}()
 
-	strBuffer := ""
-	for {
-		// Set a deadline for reading. Read operation will fail if no data is received after deadline.
-		// conn.SetReadDeadline(time.Now().Add(TIMEOUT))
-
-		recBuffer := make([]byte, BUFFER_SIZE)
-		n, err := conn.Read(recBuffer)
-		if n == 0 || err != nil {
-			log.Println("Failed to read connection:", err)
-			return
-		}
-		if e, ok := err.(interface{ Timeout() bool }); ok && e.Timeout() {
-			log.Println("Timeout error", e)
-			return
-		}
-
-		// For debugging
-		// strBuffer += strings.Replace(string(recBuffer[:n]), "\n", "", -1)
-
-		// Convert the received buffer to string and add it to the main buffer
-		strBuffer += string(recBuffer[:n])
-
-		log.Printf("strBuffer:'%s'\n", strBuffer)
-
-		msg, rest := parseMessage(strBuffer)
-		if msg != "" {
-			log.Printf("Message is:'%s'\n", msg)
-			log.Printf("Left to read is:'%s'\n", rest)
-			handleMessage(msg)
-			strBuffer = rest
-		}
+	r := RobotReader{Conn: conn}
+	msg, err := r.getMessage(10)
+	if err != nil {
+		log.Printf("Error while getting a message: %s\n", err)
+		return
 	}
-}
-
-func parseMessage(s string) (msg, rest string) {
-	parts := strings.SplitN(s, "\\a\\b", 2)
-	if len(parts) != 2 {
-		return "", s
-	}
-	msg = parts[0]
-	rest = parts[1]
-	return
-}
-
-func handleMessage(msg string) {
-
+	log.Printf("Received a message: %s\n", msg)
 }
