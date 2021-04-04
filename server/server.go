@@ -15,21 +15,21 @@ const (
 	TIMEOUT_RECHARGING = 5 * time.Second // Časový interval, během kterého musí robot dokončit dobíjení.
 
 	// Constatnt Server messages
-	SERVER_MOVE                   = "102 MOVE\\a\\b"             //	Příkaz pro pohyb o jedno pole vpřed
-	SERVER_TURN_LEFT              = "103 TURN LEFT\\a\\b"        //	Příkaz pro otočení doleva
-	SERVER_TURN_RIGHT             = "104 TURN RIGHT\\a\\b"       //	Příkaz pro otočení doprava
-	SERVER_PICK_UP                = "105 GET MESSAGE\\a\\b"      //	Příkaz pro vyzvednutí zprávy
-	SERVER_LOGOUT                 = "106 LOGOUT\\a\\b"           //	Příkaz pro ukončení spojení po úspěšném vyzvednutí zprávy
-	SERVER_KEY_REQUEST            = "107 KEY REQUEST\\a\\b"      //	Žádost serveru o Key ID pro komunikaci
-	SERVER_OK                     = "200 OK\\a\\b"               //	Kladné potvrzení
-	SERVER_LOGIN_FAILED           = "300 LOGIN FAILED\\a\\b"     //	Nezdařená autentizace
-	SERVER_SYNTAX_ERROR           = "301 SYNTAX ERROR\\a\\b"     //	Chybná syntaxe zprávy
-	SERVER_LOGIC_ERROR            = "302 LOGIC ERROR\\a\\b"      //	Zpráva odeslaná ve špatné situaci
-	SERVER_KEY_OUT_OF_RANGE_ERROR = "303 KEY OUT OF RANGE\\a\\b" // Key ID není v očekávaném rozsahu
+	SERVER_MOVE                   = "102 MOVE\a\b"             //	Příkaz pro pohyb o jedno pole vpřed
+	SERVER_TURN_LEFT              = "103 TURN LEFT\a\b"        //	Příkaz pro otočení doleva
+	SERVER_TURN_RIGHT             = "104 TURN RIGHT\a\b"       //	Příkaz pro otočení doprava
+	SERVER_PICK_UP                = "105 GET MESSAGE\a\b"      //	Příkaz pro vyzvednutí zprávy
+	SERVER_LOGOUT                 = "106 LOGOUT\a\b"           //	Příkaz pro ukončení spojení po úspěšném vyzvednutí zprávy
+	SERVER_KEY_REQUEST            = "107 KEY REQUEST\a\b"      //	Žádost serveru o Key ID pro komunikaci
+	SERVER_OK                     = "200 OK\a\b"               //	Kladné potvrzení
+	SERVER_LOGIN_FAILED           = "300 LOGIN FAILED\a\b"     //	Nezdařená autentizace
+	SERVER_SYNTAX_ERROR           = "301 SYNTAX ERROR\a\b"     //	Chybná syntaxe zprávy
+	SERVER_LOGIC_ERROR            = "302 LOGIC ERROR\a\b"      //	Zpráva odeslaná ve špatné situaci
+	SERVER_KEY_OUT_OF_RANGE_ERROR = "303 KEY OUT OF RANGE\a\b" // Key ID není v očekávaném rozsahu
 
 	// Constatnt Client Messages
-	CLIENT_RECHARGING = "RECHARGING\\a\\b" // Robot se začal dobíjet a přestal reagovat na zprávy.
-	CLIENT_FULL_POWER = "FULL POWER\\a\\b" // Robot doplnil energii a opět příjímá příkazy.
+	CLIENT_RECHARGING = "RECHARGING\a\b" // Robot se začal dobíjet a přestal reagovat na zprávy.
+	CLIENT_FULL_POWER = "FULL POWER\a\b" // Robot doplnil energii a opět příjímá příkazy.
 )
 
 // Starts a TCP listener
@@ -80,10 +80,15 @@ func handleConnection(conn net.Conn) {
 	}()
 
 	r := RobotReader{Conn: conn}
-	msg, err := r.getMessage(10)
+	err := r.authenticate()
 	if err != nil {
-		log.Printf("Error while getting a message: %s\n", err)
+		log.Printf("Error while authenticting: %s\n", err)
 		return
 	}
-	log.Printf("Received a message: %s\n", msg)
+	// msg, err := r.getMessage(100)
+	// if err != nil {
+	// 	log.Printf("Error while getting a message: %s\n", err)
+	// 	return
+	// }
+	// log.Printf("Received a message: %s\n", msg)
 }
