@@ -37,7 +37,7 @@ func (r *Robot) setInitCoordinates() (err error) {
 			return err
 		}
 
-		msg, err := r.getMessage(12)
+		msg, err := r.getMessage(MAX_OK_LEN)
 		if err != nil {
 			log.Printf("[%s] Error while getting initial coordinates: %s\n", r.Username, err)
 			return err
@@ -116,7 +116,7 @@ func (r *Robot) parseAndSetCoordinates(msg string) (err error) {
 // Moves robot one step in his current direction
 func (r *Robot) move() (err error) {
 	// We have the right direction so just move one in the current direction
-	res, err := r.executeCommandAndWaitForResponse(SERVER_MOVE, MAX_CONFIRMATION_LEN)
+	res, err := r.executeCommandAndWaitForResponse(SERVER_MOVE, MAX_OK_LEN)
 	// _, err = r.Conn.Write([]byte(SERVER_MOVE))
 	if err != nil {
 		return err
@@ -130,7 +130,7 @@ func (r *Robot) move() (err error) {
 // Turns robot into the way specified
 func (r *Robot) turn(dir string) (err error) {
 	// We have the right direction so just move one in the current direction
-	res, err := r.executeCommandAndWaitForResponse(dir, MAX_CONFIRMATION_LEN)
+	res, err := r.executeCommandAndWaitForResponse(dir, MAX_OK_LEN)
 	// _, err = r.Conn.Write([]byte(SERVER_MOVE))
 	if err != nil {
 		return err

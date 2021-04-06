@@ -20,24 +20,24 @@ type Robot struct {
 // Gets a message from the Buffer property and returns it
 func (r *Robot) getMessage(maxLength int) (msg string, err error) {
 	for {
+		// log.Printf("[%s] Getting message from buffer: '%s'\n", r.Username, r.Buffer)
 		parts := strings.SplitN(r.Buffer, "\a\b", 2)
-
 		// Wait until we get the \a\b sequence on input
 		if len(parts) == 2 {
 			msg = parts[0]
-			if msg == CLIENT_RECHARGING {
+			r.Buffer = parts[1]
+			if msg == strings.Replace(CLIENT_RECHARGING, "\a\b", "", 1) {
 				err = r.recharge()
 				if err != nil {
 					return
 				}
 				continue
 			}
-
 			r.Buffer = parts[1]
 			return
 		} else if len(r.Buffer) > maxLength-1 {
 			// If we exceeded the max length of the message
-			log.Printf("Maximum message (%s) length exceeded! %d > %d\n", r.Buffer, len(r.Buffer), maxLength)
+			log.Printf("Maximum message (%s) length exceeded! %d > %d\n", r.Buffer, len(r.Buffer), maxLength-1)
 			err = errors.New(SERVER_SYNTAX_ERROR)
 			return
 		}
@@ -53,6 +53,7 @@ func (r *Robot) getMessage(maxLength int) (msg string, err error) {
 // Handles robot recharging
 func (r *Robot) recharge() (err error) {
 	for {
+		// log.Printf("[%s] [RECHARGING] Reading buffer\n", r.Username)
 		err = r.readSocketBuffer(TIMEOUT_RECHARGING)
 		if err != nil {
 			log.Printf("[%s] [RECHARGING] Error occured during reading socket buffer: %s\n", r.Username, err)
@@ -62,8 +63,10 @@ func (r *Robot) recharge() (err error) {
 		parts := strings.SplitN(r.Buffer, "\a\b", 2)
 		// Wait until we get the \a\b sequence on input
 		if len(parts) == 2 {
+			msg := parts[0]
+			r.Buffer = parts[1]
 			// If we receive a message that isn't CLIENT_FULL_POWER
-			if msg := parts[0]; msg != CLIENT_FULL_POWER {
+			if msg != strings.Replace(CLIENT_FULL_POWER, "\a\b", "", 1) {
 				return errors.New(SERVER_LOGIC_ERROR)
 			}
 			return
