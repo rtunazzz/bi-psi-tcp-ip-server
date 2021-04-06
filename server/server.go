@@ -62,8 +62,6 @@ func StartListener() {
 			}
 			continue
 		}
-		log.Println("Connected to", conn.RemoteAddr())
-
 		go handleConnection(conn)
 	}
 }
@@ -71,23 +69,48 @@ func StartListener() {
 func handleConnection(conn net.Conn) {
 	log.Printf("[%s] Handling a new connection...\n", conn.RemoteAddr().String())
 
+	// Initialize robot
+	r := Robot{Conn: conn}
+
 	defer func() {
-		log.Println("Closing connection...")
+		log.Printf("[%s] Closing connection...\n", r.Username)
 		err := conn.Close()
 		if err != nil {
 			log.Println("Failed to close listener:", err)
 		}
 	}()
 
-	r := Robot{Conn: conn}
+	// Handle auth
 	err := r.authenticate()
 	if err != nil {
-		log.Printf("Error while authenticating: %s\n", err)
+		log.Printf("[%s] Error while authenticating: %s\n", r.Username, err.Error())
+		r.Conn.Write([]byte(err.Error()))
 		return
 	}
+
+	// Set initial coordinates
 	err = r.setInitCoordinates()
 	if err != nil {
-		log.Printf("Error while setting initial coordinates: %s\n", err)
+		log.Printf("[%s] Error while setting initial coordinates: %s\n", r.Username, err.Error())
+		r.Conn.Write([]byte(err.Error()))
 		return
 	}
+
+	err = r.navigateToSecretMessage()
+	if err != nil {
+		log.Printf("[%s] Error while navigating to the secret message: %s\n", r.Username, err.Error())
+		r.Conn.Write([]byte(err.Error()))
+		return
+	}
+	log.Printf("[%s] About to get secret message - currently at %+v\n", r.Username, *(r.coors))
+
+	secretMsg, err := r.executeCommandAndWaitForResponse(SERVER_PICK_UP, MAX_MESSAGE_LEN)
+	if err != nil {
+		log.Printf("[%s] Error while getting the secret message: %s\n", r.Username, err.Error())
+		r.Conn.Write([]byte(err.Error()))
+		return
+	}
+
+	log.Printf("[%s] Received the secret message: %s\n", r.Username, secretMsg)
+	r.Conn.Write([]byte(SERVER_LOGOUT))
 }

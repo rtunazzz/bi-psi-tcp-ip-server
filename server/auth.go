@@ -74,7 +74,6 @@ func (r *Robot) authenticate() (err error) {
 	log.Printf("[%s] Looking for key index %s\n", username, recKeyIndexStr)
 	serverKey, clientKey, err := authkeyLookup(recKeyIndexStr)
 	if err != nil {
-		log.Printf("[%s] Error while looking up auth key: %s'\n", username, err)
 		return err
 	}
 	log.Printf("[%s] Found serverKey: '%d' and clientKey: '%d'\n", username, serverKey, clientKey)
@@ -99,11 +98,12 @@ func (r *Robot) authenticate() (err error) {
 	}
 	recClientHashInt, err := strconv.Atoi(recClientHash)
 	if err != nil {
-		log.Printf("[%s] Client hash is not a number. %s\n", username, recClientHash)
-		return err
+		log.Printf("[%s] Client hash is not a number: '%s'\n", username, recClientHash)
+		// return err
+		return errors.New(SERVER_SYNTAX_ERROR)
 	}
 	log.Printf("[%s] Recieved client hash '%s'.\n", username, recClientHash)
-	log.Printf("[%s] Checking if client hashesh match ('%d' == '%s')\n", username, clientHash, recClientHash)
+	log.Printf("[%s] Checking if client hashes match ('%d' == '%s')\n", username, clientHash, recClientHash)
 	if recClientHashInt == clientHash {
 		log.Printf("[%s] Successfully authenticated.\n", username)
 		_, err = r.Conn.Write([]byte(SERVER_OK))
@@ -112,10 +112,7 @@ func (r *Robot) authenticate() (err error) {
 		}
 	} else {
 		log.Printf("[%s] Failed to authenticate.\n", username)
-		_, err = r.Conn.Write([]byte(SERVER_LOGIN_FAILED))
-		if err != nil {
-			return err
-		}
+		return errors.New(SERVER_LOGIN_FAILED)
 	}
 	return nil
 }
@@ -134,7 +131,7 @@ func authkeyLookup(iStr string) (serverKey, clientKey int, err error) {
 	if err != nil {
 		return -1, -1, errors.New(SERVER_SYNTAX_ERROR)
 	}
-	if i < 0 || i > len(AUTH_KEYS) {
+	if i < 0 || i > (len(AUTH_KEYS)-1) {
 		return -1, -1, errors.New(SERVER_KEY_OUT_OF_RANGE_ERROR)
 	}
 	keys := AUTH_KEYS[i]
