@@ -326,7 +326,15 @@ func (r *Robot) navigateToSecretMessage() (err error) {
 		if err = r.moveRight(); err != nil {
 			return err
 		}
-		toMoveX = toMoveX - 1
+		if r.moved() {
+			toMoveX = toMoveX - 1
+		} else {
+			r.changeDirection()
+			if err = r.move(); err != nil {
+				return
+			}
+			return r.navigateToSecretMessage()
+		}
 	}
 	for toMoveX < 0 {
 		log.Printf("[%s] %+v Moving left", r.Username, *(r.coors))
@@ -334,7 +342,15 @@ func (r *Robot) navigateToSecretMessage() (err error) {
 		if err = r.moveLeft(); err != nil {
 			return err
 		}
-		toMoveX = toMoveX + 1
+		if r.moved() {
+			toMoveX = toMoveX + 1
+		} else {
+			r.changeDirection()
+			if err = r.move(); err != nil {
+				return
+			}
+			return r.navigateToSecretMessage()
+		}
 	}
 
 	// next we move horizontally = up/ down
@@ -349,6 +365,10 @@ func (r *Robot) navigateToSecretMessage() (err error) {
 			toMoveY = toMoveY - 1
 		} else {
 			r.changeDirection()
+			if err = r.move(); err != nil {
+				return
+			}
+			return r.navigateToSecretMessage()
 		}
 	}
 	for toMoveY < 0 {
@@ -357,7 +377,15 @@ func (r *Robot) navigateToSecretMessage() (err error) {
 		if err = r.moveDown(); err != nil {
 			return err
 		}
-		toMoveY = toMoveY + 1
+		if r.moved() {
+			toMoveY = toMoveY + 1
+		} else {
+			r.changeDirection()
+			if err = r.move(); err != nil {
+				return
+			}
+			return r.navigateToSecretMessage()
+		}
 	}
 	return nil
 }
