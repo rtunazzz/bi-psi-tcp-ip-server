@@ -1,7 +1,5 @@
 package server
 
-// TODO: Find out if we really need to read bytes or not
-
 import (
 	"log"
 	"net"

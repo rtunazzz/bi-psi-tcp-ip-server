@@ -70,7 +70,6 @@ func (r *Robot) authenticate() (err error) {
 		return err
 	}
 
-	// TODO Add check to make sure key index is valid (+ error handling)
 	log.Printf("[%s] Looking for key index %s\n", username, recKeyIndexStr)
 	serverKey, clientKey, err := authkeyLookup(recKeyIndexStr)
 	if err != nil {
